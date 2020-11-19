@@ -1,22 +1,35 @@
 package main
 
 import (
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-	"log"
+	"fmt"
+	"github.com/reaperhero/k8s-operations-golang/model"
+	"github.com/reaperhero/k8s-operations-golang/model/usecase"
 )
 
 func main() {
-	config, err := clientcmd.BuildConfigFromFlags("", "/Users/chenqiangjun/.kube/prometheus")
-	if err != nil {
-		panic(err.Error())
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	list,err := clientset.AppsV1().Deployments("default").List(v1.ListOptions{
+	usecase := usecase.Newclient("/Users/chenqiangjun/.kube/prometheus")
+	fmt.Println(usecase.ListDeployment())
+	err := usecase.CreateDeployment(model.Deployment{
+		Name:      "web",
+		Namespace: "default",
+		Image:     "nginx:1.12",
+		Replicas:  1,
+		Port:      nil,
+		Env:       nil,
 	})
-	if err !=nil{
-		log.Println(err)
+	if err == nil {
+		fmt.Println(usecase.ListDeployment())
 	}
-	log.Println(list.Items[0])
+	err = usecase.UpdateDeployment(model.Deployment{
+		Name:      "web",
+		Namespace: "default",
+		Image:     "nginx:1.13",
+		Replicas:  1,
+		Port:      nil,
+		Env:       nil,
+	})
+	if err == nil {
+		fmt.Println(usecase.ListDeployment())
+	}
+	usecase.DeleteDeployment("web")
 }
